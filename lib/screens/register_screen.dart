@@ -1,0 +1,131 @@
+// lib/features/auth/presentation/register_screen.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../providers/auth_controller.dart';
+import '../providers/register_loading_provider.dart';
+import '../widgets/app_button.dart';
+import '../widgets/app_text_field.dart';
+
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final emailCtrl = TextEditingController();
+  final passCtrl = TextEditingController();
+  final confirmCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    emailCtrl.dispose();
+    passCtrl.dispose();
+    confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  void _showSnack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  String? _validateEmail(String v) {
+    if (v.trim().isEmpty) return 'Email is required';
+    final re = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    if (!re.hasMatch(v.trim())) return 'Enter a valid email';
+    return null;
+  }
+
+  String? _validatePassword(String v) {
+    if (v.isEmpty) return 'Password is required';
+    if (v.length < 6) return 'Password must be at least 6 characters';
+    return null;
+  }
+
+  Future<void> _register() async {
+    final email = emailCtrl.text.trim();
+    final pass = passCtrl.text;
+    final confirm = confirmCtrl.text;
+
+    final emailErr = _validateEmail(email);
+    final passErr = _validatePassword(pass);
+    final confirmErr = confirm.isEmpty
+        ? 'Confirm your password'
+        : (confirm != pass ? 'Passwords do not match' : null);
+
+    final firstError = [emailErr, passErr, confirmErr].whereType<String>().firstOrNull;
+    if (firstError != null) {
+      _showSnack(firstError);
+      return;
+    }
+
+    final loading = ref.read(registerLoadingProvider.notifier);
+    loading.state = true;
+    try {
+      // 1) Register with ONLY email+password
+      await ref.read(authControllerProvider).register(email, pass);
+
+      // 2) Try to login (if email verification is OFF this creates a session)
+      try { await ref.read(authControllerProvider).login(email, pass); } catch (_) {}
+
+      // Router will push to /complete-profile if name/avatar missing
+      if (!mounted) return;
+      context.go('/home');
+    } catch (e) {
+      _showSnack('Registration failed: $e');
+    } finally {
+      loading.state = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isRegistering = ref.watch(registerLoadingProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Create account')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            AppTextField(
+              controller: emailCtrl,
+              label: 'Email',
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 12),
+            AppTextField(
+              controller: passCtrl,
+              label: 'Password',
+              obscureText: true,
+            ),
+            const SizedBox(height: 12),
+            AppTextField(
+              controller: confirmCtrl,
+              label: 'Confirm Password',
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            AppButton(
+              label: 'Register',
+              isLoading: isRegistering,
+              onPressed: isRegistering ? null : _register,
+            ),
+            TextButton(
+              onPressed: isRegistering ? null : () => context.go('/login'),
+              child: const Text('Have an account? Login'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+extension<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
+}
