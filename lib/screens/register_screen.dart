@@ -2,11 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../providers/auth_controller.dart';
 import '../providers/register_loading_provider.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
+import '../widgets/custom_back_button.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -87,37 +87,59 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final isRegistering = ref.watch(registerLoadingProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      appBar: AppBar(
+        //backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 15,top: 10), // keep some margin from edge
+          child: CustomBackButton(),
+        ),
+      ),
+      body: SingleChildScrollView(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            AppTextField(
-              controller: emailCtrl,
-              label: 'Email',
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: passCtrl,
-              label: 'Password',
-              obscureText: true,
-            ),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: confirmCtrl,
-              label: 'Confirm Password',
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            AppButton(
-              label: 'Register',
-              isLoading: isRegistering,
-              onPressed: isRegistering ? null : _register,
-            ),
-            TextButton(
-              onPressed: isRegistering ? null : () => context.go('/login'),
-              child: const Text('Have an account? Login'),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  SizedBox(height: 20,),
+                  Text(
+                    "Hello! Register to get started",
+                    style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20,),
+                  AppTextField(
+                    controller: emailCtrl,
+                    label: 'Enter your email',
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    controller: passCtrl,
+                    label: 'Enter your  password',
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    controller: confirmCtrl,
+                    label: 'Confirm Password',
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 16),
+                  AppButton(
+                    label: 'Register',
+                    isLoading: isRegistering,
+                    onPressed: isRegistering ? null : _register,
+                  ),
+                  SizedBox(height: 10,),
+                  TextButton(
+                    onPressed: isRegistering ? null : () => context.go('/login'),
+                    child: const Text('Already have an account? Login Now'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

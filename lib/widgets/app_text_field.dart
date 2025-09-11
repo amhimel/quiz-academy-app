@@ -28,8 +28,20 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged, // <-- wire it
       decoration: InputDecoration(
         labelText: label,
-        border: const OutlineInputBorder(),
         suffixIcon: suffix,
+        filled: true, // enable background color
+        fillColor: Colors.grey.shade100, // background color (change as needed)
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10), // corner radius
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade300), // border color
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+        ),
       ),
     );
   }

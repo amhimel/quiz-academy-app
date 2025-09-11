@@ -12,37 +12,32 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Quiz Academy"),
-        actions: [
-          Consumer(
-            builder: (context, ref, child) {
-              final themeState = ref.watch(themeProvider);
-              return IconButton(
-                icon: Icon(
-                  themeState == ThemeEnum.dark
-                      ? MyAppIcons.darkMode
-                      : MyAppIcons.lightMode,
-                ),
-                onPressed: () async {
-                  await ref
-                      .read(themeProvider.notifier)
-                      .toggleTheme(); //themeState.toggleTheme();
-                },
-              );
-            },
-          ),
-
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: Text("Quiz Academy"),
+      //   actions: [
+      //     Consumer(
+      //       builder: (context, ref, child) {
+      //         final themeState = ref.watch(themeProvider);
+      //         return IconButton(
+      //           icon: Icon(
+      //             themeState == ThemeEnum.dark
+      //                 ? MyAppIcons.darkMode
+      //                 : MyAppIcons.lightMode,
+      //           ),
+      //           onPressed: () async {
+      //             await ref
+      //                 .read(themeProvider.notifier)
+      //                 .toggleTheme(); //themeState.toggleTheme();
+      //           },
+      //         );
+      //       },
+      //     ),
+      //
+      //   ],
+      // ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            // Navigate to the upload image screen
-             Navigator.push(context, MaterialPageRoute(builder: (context) => UploadImageScreen()));
-          },
-          child: Text("Upload Image"),
-        ),
+        child: Text("Home Screen")
+
       ),
     );
   }

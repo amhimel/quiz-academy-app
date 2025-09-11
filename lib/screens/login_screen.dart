@@ -6,6 +6,7 @@ import '../models/profile_model.dart';
 import '../providers/auth_controller.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
+import '../widgets/custom_back_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -62,7 +63,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Log in')),
+      appBar: AppBar(
+        //backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 15,top: 10), // keep some margin from edge
+          child: CustomBackButton(),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -71,24 +79,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  AppTextField(controller: _email, label: 'Email'),
+                  Text(
+                    "Welcome back! Glad to see you, Again!",
+                    style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 30),
+                  AppTextField(controller: _email, label: 'Enter your email'),
                   const SizedBox(height: 12),
                   // Using your current AppTextField API (no suffix)
                   AppTextField(
                     controller: _password,
-                    label: 'Password',
-                    obscureText: true, // toggle not shown since no suffix support
+                    label: 'Enter your  password',
+                    obscureText:
+                        true, // toggle not shown since no suffix support
                   ),
-                  const SizedBox(height: 16),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
                   AppButton(
                     label: 'Log in',
                     isLoading: _loading,
                     onPressed: _loading ? null : _doLogin,
                   ),
+                  SizedBox(height: 50),
                   TextButton(
                     onPressed: () => context.go('/register'),
-                    child: const Text('Create an account'),
+                    child: const Text('Don’t have an account? Register Now'),
                   ),
                 ],
               ),

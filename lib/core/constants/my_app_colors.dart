@@ -4,9 +4,11 @@ class MyAppColors {
   // 🌐 Brand Colors
   static const primary = Color(0xFF3B82F6);     // Blue
   static const secondary = Color(0xFFF59E0B);  // Amber
+  static const appButtonColor = Color(0xFF4D61DE);  // Amber
+  static const Color profileButtonBackColor = Color(0xFF1E1E1E);
 
   // ✅ Neutral / Background
-  static const backgroundLight = Color(0xFFF9FAFB); // Gray-50
+  static const backgroundLight = Color(0xFFF5EDE2); // Gray-50
   static const backgroundDark = Color(0xFF111827);  // Gray-900
 
   static const surfaceLight = Color(0xFFFFFFFF);    // White

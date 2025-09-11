@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quiz_academy/screens/custom_bottom_nav.dart';
 import '../../providers/auth_controller.dart';
 import '../../providers/profile_completion_provider.dart';
 import '../../screens/complete_profile_screen.dart';
+import '../../screens/friend_list_Screen.dart';
 import '../../screens/home_screen.dart';
+import '../../screens/leader_board_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../screens/quiz_list_screen.dart';
 import '../../screens/register_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -33,15 +37,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (needsCompletion && !onComplete) return '/complete-profile';
-      if (!needsCompletion && onComplete) return '/home';
-      if (onLogin || onRegister) return '/home';
+      if (!needsCompletion && onComplete) return '/nav';
+      if (onLogin || onRegister) return '/nav';
       return null;
     },
+
     routes: [
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
-      GoRoute(path: '/complete-profile', builder: (_, __) => const CompleteProfileScreen()),
-      GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
+      GoRoute(path: '/login', builder: (_, _) => const RegisterScreen()),
+      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(path: '/complete-profile', builder: (_, _) => const CompleteProfileScreen()),
+      GoRoute(path: '/nav', builder: (_, _) =>  CustomBottomNav(
+        pages: const [
+          HomeScreen(),
+          QuizListScreen(),
+          LeaderBoardScreen(),
+          FriendListScreen(),
+        ],
+      ),),
     ],
   );
 });
