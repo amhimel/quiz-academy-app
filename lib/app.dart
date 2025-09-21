@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quiz_academy/providers/theme_provider.dart';
 import 'core/constants/theme_data.dart';
-import 'core/enums/theme_enum.dart';
+import 'core/enums/all_enum.dart';
 import 'core/router/app_router.dart';
 
 class App extends ConsumerWidget {
@@ -15,9 +15,7 @@ class App extends ConsumerWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: router,
-      theme: themeState == ThemeEnum.dark
-          ? MyAppTheme.darkTheme
-          : MyAppTheme.lightTheme,
+      theme: /*themeState == ThemeEnum.dark ? MyAppTheme.darkTheme : */ MyAppTheme.lightTheme,
     );
   }
 }

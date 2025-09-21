@@ -5,16 +5,19 @@ import 'package:quiz_academy/core/constants/my_app_colors.dart';
 class AppButton extends StatelessWidget {
   final String label;        // your existing prop
   final VoidCallback? onPressed;
-  final bool isLoading;      // your existing prop
+  final bool isLoading;
+  ButtonStyle style;// your existing prop
 
   // aliases so code that uses text/loading also compiles
-  const AppButton({
+   AppButton({
     super.key,
     String? text,            // alias
     bool? loading,           // alias
     required this.onPressed,
     String? label,
     bool? isLoading,
+    this.style = const ButtonStyle(),
+
   })  : label = label ?? text ?? 'Submit',
         isLoading = isLoading ?? loading ?? false;
 

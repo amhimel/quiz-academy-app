@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/enums/theme_enum.dart';
+import '../core/enums/all_enum.dart';
 
 final themeProvider = StateNotifierProvider<ThemeProvider, ThemeEnum>(
   (_) => ThemeProvider(),

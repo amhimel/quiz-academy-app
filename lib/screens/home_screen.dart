@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quiz_academy/screens/upload_image_screen.dart';
 
 import '../core/constants/my_app_icons.dart';
-import '../core/enums/theme_enum.dart';
+import '../core/enums/all_enum.dart';
 import '../providers/theme_provider.dart';
 
 class HomeScreen extends StatelessWidget {

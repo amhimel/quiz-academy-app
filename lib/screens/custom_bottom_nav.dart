@@ -1,35 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:quiz_academy/widgets/custom_appbar.dart';
+import '../models/profile_model.dart';
+import '../providers/csv_import_provider.dart';
+import '../providers/my_profile_provider.dart';
 
-class CustomBottomNav extends StatefulWidget {
+class CustomBottomNav extends ConsumerStatefulWidget {
   const CustomBottomNav({super.key, required this.pages});
-
   final List<Widget> pages;
 
   @override
-  State<CustomBottomNav> createState() => _CustomBottomNavState();
+  ConsumerState<CustomBottomNav> createState() => _CustomBottomNavState();
 }
 
-class _CustomBottomNavState extends State<CustomBottomNav> {
+class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
   int index = 0;
 
-  // ✅ Use Flutter built-in icons
-  final icons = const [
-    Icons.home,
-    Icons.quiz,
-    Icons.leaderboard,
-    Icons.group, // friends
-  ];
-
+  // ✅ Built-in icons
+  final icons = const [Icons.home, Icons.quiz, Icons.leaderboard, Icons.group];
   final labels = const ["Home", "Quizzes", "Leaderboard", "Friends"];
+
+  String _fallbackName(ProfileModel? p) {
+    if (p == null) return "Guest";
+    final dn = (p.displayName ?? '').trim();
+    if (dn.isNotEmpty) return dn;
+    final username = p.email.split('@').first;
+    return username.isEmpty
+        ? "User"
+        : username[0].toUpperCase() + username.substring(1);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final profileAsync = ref.watch(myProfileProvider);
+
+    // 🔔 Show error as SnackBar (do NOT rebuild a separate Scaffold)
+    ref.listen<AsyncValue<ProfileModel?>>(myProfileProvider, (prev, next) {
+      next.whenOrNull(error: (e, st) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final m = ScaffoldMessenger.maybeOf(context);
+          if (m == null) return;
+          m.hideCurrentSnackBar();
+          m.showSnackBar(
+            SnackBar(
+              content: Text('Failed to load profile: $e'),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        });
+      });
+    });
+
+    // Use latest data if present; otherwise fall back
+    final p = profileAsync.valueOrNull;
+    final name = _fallbackName(p);
+    final avatarUrl = p?.profileImage;
+
     return Scaffold(
+      appBar: CustomAppbar(
+        name: name,
+        profileImageUrl: avatarUrl,
+        onProfileTap: () {},
+        height: 90,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      ),
       backgroundColor: const Color(0xFFF3EBDD),
       body: Stack(
         children: [
+          // Your current page
           Positioned.fill(child: widget.pages[index]),
 
+          // (Optional) thin loading bar while fetching/refreshing
+          if (profileAsync.isLoading)
+            const Align(
+              alignment: Alignment.topCenter,
+              child: LinearProgressIndicator(minHeight: 2),
+            ),
+
+          // ---- bottom nav stays mounted, unchanged ----
           Align(
             alignment: Alignment.bottomCenter,
             child: SafeArea(
@@ -53,13 +104,9 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                         ],
                       ),
                     ),
-
-                    // Clipped white bar with concave scoop
+                    // Bar
                     ClipPath(
-                      clipper: _TopConcaveClipper(
-                        scoopRadius: 40,
-                        scoopWidth: 180,
-                      ),
+                      clipper: _TopConcaveClipper(scoopRadius: 40, scoopWidth: 180),
                       child: Container(
                         height: 120,
                         decoration: BoxDecoration(
@@ -80,29 +127,21 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                                       duration: const Duration(milliseconds: 180),
                                       padding: const EdgeInsets.all(9),
                                       decoration: BoxDecoration(
-                                        color: selected
-                                            ? const Color(0xFF1F4BFF)
-                                            : Colors.transparent,
+                                        color: selected ? const Color(0xFF1F4BFF) : Colors.transparent,
                                         borderRadius: BorderRadius.circular(18),
                                       ),
                                       child: Icon(
                                         icons[i],
                                         size: 22,
-                                        color: selected
-                                            ? Colors.white
-                                            : const Color(0xFF8F8F8F),
+                                        color: selected ? Colors.white : const Color(0xFF8F8F8F),
                                       ),
                                     ),
                                     Text(
                                       labels[i],
                                       style: TextStyle(
                                         fontSize: selected ? 14 : 12,
-                                        fontWeight: selected
-                                            ? FontWeight.w600
-                                            : FontWeight.w400,
-                                        color: selected
-                                            ? const Color(0xFF1F4BFF)
-                                            : const Color(0xFF8F8F8F),
+                                        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                                        color: selected ? const Color(0xFF1F4BFF) : const Color(0xFF8F8F8F),
                                       ),
                                     ),
                                   ],
@@ -113,8 +152,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                         ),
                       ),
                     ),
-
-                    // Center FAB overlapping the scoop
+                    // Center FAB
                     Positioned.fill(
                       top: -30,
                       child: Align(
@@ -126,18 +164,15 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                             shape: BoxShape.circle,
                             color: Color(0xFF1F4BFF),
                             boxShadow: [
-                              BoxShadow(
-                                color: Color(0x33000000),
-                                blurRadius: 12,
-                                offset: Offset(0, 6),
-                              ),
+                              BoxShadow(color: Color(0x33000000), blurRadius: 12, offset: Offset(0, 6)),
                             ],
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.add,
-                                color: Colors.white, size: 28),
+                            icon: const Icon(Icons.add, color: Colors.white, size: 28),
                             onPressed: () {
+                                  () => showCreateOrImportSheet(context, ref);
                               // TODO: create quiz action
+
                             },
                           ),
                         ),
@@ -152,12 +187,12 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
       ),
     );
   }
+
 }
 
-/// Custom clipper: concave scoop at top center
+/// Concave clipper unchanged
 class _TopConcaveClipper extends CustomClipper<Path> {
   _TopConcaveClipper({required this.scoopRadius, required this.scoopWidth});
-
   final double scoopRadius;
   final double scoopWidth;
 
