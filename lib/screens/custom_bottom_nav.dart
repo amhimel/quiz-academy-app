@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -169,11 +171,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
                           ),
                           child: IconButton(
                             icon: const Icon(Icons.add, color: Colors.white, size: 28),
-                            onPressed: () {
-                                  () => showCreateOrImportSheet(context, ref);
-                              // TODO: create quiz action
-
-                            },
+                            onPressed: () => showCreateOrImportSheet(context, ref),
                           ),
                         ),
                       ),
