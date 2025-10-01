@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,9 +6,15 @@ import 'package:quiz_academy/widgets/custom_appbar.dart';
 import '../models/profile_model.dart';
 import '../providers/csv_import_provider.dart';
 import '../providers/my_profile_provider.dart';
+import '../widgets/create_or_import_sheet.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+
+final _sb = Supabase.instance.client;
 
 class CustomBottomNav extends ConsumerStatefulWidget {
   const CustomBottomNav({super.key, required this.pages});
+
   final List<Widget> pages;
 
   @override
@@ -39,21 +44,23 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
 
     // 🔔 Show error as SnackBar (do NOT rebuild a separate Scaffold)
     ref.listen<AsyncValue<ProfileModel?>>(myProfileProvider, (prev, next) {
-      next.whenOrNull(error: (e, st) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final m = ScaffoldMessenger.maybeOf(context);
-          if (m == null) return;
-          m.hideCurrentSnackBar();
-          m.showSnackBar(
-            SnackBar(
-              content: Text('Failed to load profile: $e'),
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        });
-      });
+      next.whenOrNull(
+        error: (e, st) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final m = ScaffoldMessenger.maybeOf(context);
+            if (m == null) return;
+            m.hideCurrentSnackBar();
+            m.showSnackBar(
+              SnackBar(
+                content: Text('Failed to load profile: $e'),
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          });
+        },
+      );
     });
 
     // Use latest data if present; otherwise fall back
@@ -67,7 +74,15 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
         profileImageUrl: avatarUrl,
         onProfileTap: () {},
         height: 90,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
+        // onLogoutTap: () async {
+        //   await _sb.auth.signOut();
+        //   context.go('/login');
+        // },
+
       ),
       backgroundColor: const Color(0xFFF3EBDD),
       body: Stack(
@@ -108,7 +123,10 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
                     ),
                     // Bar
                     ClipPath(
-                      clipper: _TopConcaveClipper(scoopRadius: 40, scoopWidth: 180),
+                      clipper: _TopConcaveClipper(
+                        scoopRadius: 40,
+                        scoopWidth: 180,
+                      ),
                       child: Container(
                         height: 120,
                         decoration: BoxDecoration(
@@ -126,24 +144,34 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     AnimatedContainer(
-                                      duration: const Duration(milliseconds: 180),
+                                      duration: const Duration(
+                                        milliseconds: 180,
+                                      ),
                                       padding: const EdgeInsets.all(9),
                                       decoration: BoxDecoration(
-                                        color: selected ? const Color(0xFF1F4BFF) : Colors.transparent,
+                                        color: selected
+                                            ? const Color(0xFF1F4BFF)
+                                            : Colors.transparent,
                                         borderRadius: BorderRadius.circular(18),
                                       ),
                                       child: Icon(
                                         icons[i],
                                         size: 22,
-                                        color: selected ? Colors.white : const Color(0xFF8F8F8F),
+                                        color: selected
+                                            ? Colors.white
+                                            : const Color(0xFF8F8F8F),
                                       ),
                                     ),
                                     Text(
                                       labels[i],
                                       style: TextStyle(
                                         fontSize: selected ? 14 : 12,
-                                        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                                        color: selected ? const Color(0xFF1F4BFF) : const Color(0xFF8F8F8F),
+                                        fontWeight: selected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: selected
+                                            ? const Color(0xFF1F4BFF)
+                                            : const Color(0xFF8F8F8F),
                                       ),
                                     ),
                                   ],
@@ -166,12 +194,25 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
                             shape: BoxShape.circle,
                             color: Color(0xFF1F4BFF),
                             boxShadow: [
-                              BoxShadow(color: Color(0x33000000), blurRadius: 12, offset: Offset(0, 6)),
+                              BoxShadow(
+                                color: Color(0x33000000),
+                                blurRadius: 12,
+                                offset: Offset(0, 6),
+                              ),
                             ],
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.add, color: Colors.white, size: 28),
-                            onPressed: () => showCreateOrImportSheet(context, ref),
+                            icon: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                            onPressed: () => CreateOrImportSheet.show(
+                              context,
+                              onMakeTap: () {
+                                context.push('/create-quiz');
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -185,12 +226,12 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
       ),
     );
   }
-
 }
 
 /// Concave clipper unchanged
 class _TopConcaveClipper extends CustomClipper<Path> {
   _TopConcaveClipper({required this.scoopRadius, required this.scoopWidth});
+
   final double scoopRadius;
   final double scoopWidth;
 

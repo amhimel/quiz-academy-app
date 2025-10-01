@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quiz_academy/screens/upload_image_screen.dart';
+import 'package:quiz_academy/widgets/shared_quiz_card.dart';
 
 import '../core/constants/my_app_icons.dart';
 import '../core/enums/all_enum.dart';
@@ -12,33 +13,15 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text("Quiz Academy"),
-      //   actions: [
-      //     Consumer(
-      //       builder: (context, ref, child) {
-      //         final themeState = ref.watch(themeProvider);
-      //         return IconButton(
-      //           icon: Icon(
-      //             themeState == ThemeEnum.dark
-      //                 ? MyAppIcons.darkMode
-      //                 : MyAppIcons.lightMode,
-      //           ),
-      //           onPressed: () async {
-      //             await ref
-      //                 .read(themeProvider.notifier)
-      //                 .toggleTheme(); //themeState.toggleTheme();
-      //           },
-      //         );
-      //       },
-      //     ),
-      //
-      //   ],
-      // ),
-      body: Center(
-        child: Text("Home Screen")
+      
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SharedQuizCard(),
 
-      ),
+        ],
+      )
     );
   }
 }

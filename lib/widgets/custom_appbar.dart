@@ -11,18 +11,18 @@ String _greetingFor(DateTime now) {
 
 IconData _iconForGreeting(DateTime now) {
   final h = now.hour;
-  if (h >= 5 && h < 12) return Icons.wb_sunny; // Morning
-  if (h >= 12 && h < 17) return Icons.cloud; // Afternoon
-  if (h >= 17 && h < 21) return Icons.wb_twilight; // Evening
-  return Icons.nights_stay; // Night
+  if (h >= 5 && h < 12) return Icons.wb_sunny;
+  if (h >= 12 && h < 17) return Icons.cloud;
+  if (h >= 17 && h < 21) return Icons.wb_twilight;
+  return Icons.nights_stay;
 }
 
 Color _colorForGreeting(DateTime now) {
   final h = now.hour;
-  if (h >= 5 && h < 12) return Colors.amber; // Yellow sun
-  if (h >= 12 && h < 17) return Colors.grey; // Grey cloud
-  if (h >= 17 && h < 21) return Colors.deepOrange; // Orange sunset
-  return Colors.blueAccent; // Night blue
+  if (h >= 5 && h < 12) return Colors.amber;
+  if (h >= 12 && h < 17) return Colors.grey;
+  if (h >= 17 && h < 21) return Colors.deepOrange;
+  return Colors.blueAccent;
 }
 
 Duration _timeUntilNextBoundary(DateTime now) {
@@ -45,6 +45,7 @@ class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
   final String name;
   final String? profileImageUrl;
   final VoidCallback? onProfileTap;
+  final VoidCallback? onLogoutTap; // 👈 new
   final double height;
   final EdgeInsetsGeometry contentPadding;
 
@@ -53,6 +54,7 @@ class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
     required this.name,
     this.profileImageUrl,
     this.onProfileTap,
+    this.onLogoutTap, // 👈 new
     this.height = kToolbarHeight + 20,
     this.contentPadding = const EdgeInsets.symmetric(
       horizontal: 16,
@@ -112,9 +114,8 @@ class _CustomAppbarState extends State<CustomAppbar> {
       backgroundColor: Colors.white,
       elevation: 0,
       toolbarHeight: widget.height,
-      // 👈 custom height
       title: Padding(
-        padding: widget.contentPadding, // 👈 custom padding
+        padding: widget.contentPadding,
         child: Row(
           children: [
             Expanded(
@@ -131,7 +132,7 @@ class _CustomAppbarState extends State<CustomAppbar> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   Text(
                     widget.name,
                     style: const TextStyle(
@@ -144,6 +145,7 @@ class _CustomAppbarState extends State<CustomAppbar> {
                 ],
               ),
             ),
+            // Profile avatar
             GestureDetector(
               onTap: widget.onProfileTap,
               child: CircleAvatar(
@@ -157,6 +159,16 @@ class _CustomAppbarState extends State<CustomAppbar> {
                     : null,
               ),
             ),
+            // const SizedBox(width: 12),
+            // // Logout icon in circle
+            // GestureDetector(
+            //   onTap: widget.onLogoutTap,
+            //   child: const CircleAvatar(
+            //     radius: 20,
+            //     backgroundColor:  Color(0xFF4E63FF),
+            //     child: Icon(Icons.logout_rounded, color: Colors.white),
+            //   ),
+            // ),
           ],
         ),
       ),
