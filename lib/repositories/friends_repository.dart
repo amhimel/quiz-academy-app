@@ -59,8 +59,18 @@ class FriendsRepository {
   Future<List<String>> friendsIds() async {
     final me = _sb.auth.currentUser!.id;
     final rows = await _sb.rpc('friend_ids', params: {'p_user': me});
-    return (rows as List).cast<String>();
+
+    if (rows == null) return [];
+
+    // handles both shapes: ['uuid', ...] or [{'friend_id':'uuid'}, ...]
+    final list = rows as List;
+    return list.map<String>((e) {
+      if (e is String) return e;
+      if (e is Map<String, dynamic>) return e['friend_id'] as String;
+      throw StateError('Unexpected RPC row shape: $e');
+    }).toList();
   }
+
 
   Future<List<Map<String, dynamic>>> friendQuizzes({int limit = 50}) async {
     final rows = await _sb

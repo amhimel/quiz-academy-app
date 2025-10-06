@@ -159,16 +159,16 @@ class _CustomAppbarState extends State<CustomAppbar> {
                     : null,
               ),
             ),
-            // const SizedBox(width: 12),
-            // // Logout icon in circle
-            // GestureDetector(
-            //   onTap: widget.onLogoutTap,
-            //   child: const CircleAvatar(
-            //     radius: 20,
-            //     backgroundColor:  Color(0xFF4E63FF),
-            //     child: Icon(Icons.logout_rounded, color: Colors.white),
-            //   ),
-            // ),
+            const SizedBox(width: 12),
+            // Logout icon in circle
+            GestureDetector(
+              onTap: widget.onLogoutTap,
+              child: const CircleAvatar(
+                radius: 20,
+                backgroundColor:  Color(0xFF4E63FF),
+                child: Icon(Icons.logout_rounded, color: Colors.white),
+              ),
+            ),
           ],
         ),
       ),

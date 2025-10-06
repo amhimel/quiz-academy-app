@@ -78,10 +78,10 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
           horizontal: 12,
           vertical: 12,
         ),
-        // onLogoutTap: () async {
-        //   await _sb.auth.signOut();
-        //   context.go('/login');
-        // },
+        onLogoutTap: () async {
+          await _sb.auth.signOut();
+          context.go('/login');
+        },
 
       ),
       backgroundColor: const Color(0xFFF3EBDD),

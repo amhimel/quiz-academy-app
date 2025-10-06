@@ -77,50 +77,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             constraints: const BoxConstraints(maxWidth: 460),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    "Welcome back! Glad to see you, Again!",
-                    style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 30),
-                  AppTextField(controller: _email, label: 'Enter your email'),
-                  const SizedBox(height: 12),
-                  // Using your current AppTextField API (no suffix)
-                  AppTextField(
-                    controller: _password,
-                    label: 'Enter your  password',
-                    obscureText:
-                        true, // toggle not shown since no suffix support
-                  ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Welcome back! Glad to see you, Again!",
+                      style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 30),
+                    AppTextField(controller: _email, label: 'Enter your email'),
+                    const SizedBox(height: 12),
+                    // Using your current AppTextField API (no suffix)
+                    AppTextField(
+                      controller: _password,
+                      label: 'Enter your  password',
+                      obscureText:
+                          true, // toggle not shown since no suffix support
+                    ),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(color: Colors.black),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  AppButton(
-                    label: 'Log in',
-                    isLoading: _loading,
-                    onPressed: _loading ? null : _doLogin,
-                  ),
-                  SizedBox(height: 50),
-                  TextButton(
-                    onPressed: () => context.go('/register'),
-                    child: const Text('Don’t have an account? Register Now'),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    AppButton(
+                      label: 'Log in',
+                      isLoading: _loading,
+                      onPressed: _loading ? null : _doLogin,
+                    ),
+                    SizedBox(height: 50),
+                    TextButton(
+                      onPressed: () => context.go('/register'),
+                      child: const Text('Don’t have an account? Register Now'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
