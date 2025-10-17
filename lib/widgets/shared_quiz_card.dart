@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_academy/widgets/app_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quiz_academy/widgets/card_button.dart';
+import '../models/quiz.dart';
+import '../providers/creator_name_provider.dart';
 
-class SharedQuizCard extends StatelessWidget {
+class SharedQuizCard extends ConsumerWidget {
+  final Quiz quiz;
+  final VoidCallback? onTap;
+
   const SharedQuizCard({
     super.key,
-    this.category = "General Knowledge",
-    this.durationText = "2min",
-    this.title = "Saturday night Quiz",
-    this.quizzesCountText = "13 Quizzes",
-    this.sharedBy = "Brandon Matrovs",
-    this.onClose,
-    this.onStart,
     this.redColor = const Color(0xFFE04444),
     this.blueColor = const Color(0xFF3450F5),
     this.cardColor = const Color(0xFF5C5C5C),
+    required this.quiz,
+    this.onTap,
+    this.onClose,
+    this.onStart,
   });
 
-  final String category;
-  final String durationText;
-  final String title;
-  final String quizzesCountText;
-  final String sharedBy;
+  // final String category;
+  // final String durationText;
+  // final String title;
+  // final String quizzesCountText;
+  // final String sharedBy;
   final VoidCallback? onClose;
   final VoidCallback? onStart;
 
@@ -31,7 +33,8 @@ class SharedQuizCard extends StatelessWidget {
   final Color cardColor;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nameAsync = ref.watch(creatorNameProvider(quiz.createdBy));
     return SizedBox(
       height: 220, // 👈 bounds the Stack
       child: Stack(
@@ -40,8 +43,8 @@ class SharedQuizCard extends StatelessWidget {
           // 🔴 Back layer
           Positioned(
             top: 10,
-            left: 16,
-            right: 16,
+            left: 10,
+            right: 10,
             child: Container(
               height: 38,
               decoration: BoxDecoration(
@@ -54,8 +57,8 @@ class SharedQuizCard extends StatelessWidget {
           // 🔵 Middle layer
           Positioned(
             top: 28,
-            left: 16,
-            right: 16,
+            left: 10,
+            right: 10,
             child: Container(
               height: 48,
               decoration: BoxDecoration(
@@ -68,8 +71,8 @@ class SharedQuizCard extends StatelessWidget {
           // ⚫ Front card (bounded: top & bottom pinned)
           Positioned(
             top: 50,
-            left: 16,
-            right: 16,
+            left: 10,
+            right: 10,
             bottom: 0,
             // 👈 now Column has finite height
             child: Container(
@@ -94,13 +97,13 @@ class SharedQuizCard extends StatelessWidget {
                   Row(
                     children: [
                       _buildTag(
-                        category,
+                        quiz.type,
                         const Color(0xFFF5C4C4),
                         textColor: Colors.black87,
                       ),
                       const SizedBox(width: 8),
                       _buildTag(
-                        durationText,
+                        "${quiz.durationMinutes} min",
                         const Color(0xFF7B7B7B),
                         textColor: Colors.white,
                       ),
@@ -130,7 +133,7 @@ class SharedQuizCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        quiz.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -141,7 +144,7 @@ class SharedQuizCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        quizzesCountText,
+                        "${quiz.numQuestions} questions",
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -159,26 +162,41 @@ class SharedQuizCard extends StatelessWidget {
                         backgroundColor: Color(0xFFB48EF2),
                         child: Icon(Icons.person, color: Colors.white),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Shared By",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white70,
+                            nameAsync.when(
+                              data: (name) => Text(
+                                "By ${name ?? _shortId(quiz.createdBy)}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            Text(
-                              sharedBy,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
+                              loading: () => const Text(
+                                "",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              error: (_, _) => Text(
+                                _shortId(quiz.createdBy),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -187,10 +205,14 @@ class SharedQuizCard extends StatelessWidget {
                       CardButton(
                         label: "Start Now",
                         onPressed: onStart,
-                        expanded: false, // compact button
+                        expanded: false,
+                        // compact button
                         backgroundColor: const Color(0xFF4E63FF),
                         textColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         borderRadius: 22,
                       ),
                     ],
@@ -221,4 +243,6 @@ class SharedQuizCard extends StatelessWidget {
       ),
     );
   }
+
+  String _shortId(String s) => s.length > 6 ? "${s.substring(0, 6)}…" : s;
 }
