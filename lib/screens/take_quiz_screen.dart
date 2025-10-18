@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:quiz_academy/providers/quiz_by_id_provider.dart';
+import 'package:quiz_academy/providers/questions_by_quiz_provider.dart';
+
 import '../models/question.dart';
-import '../providers/questions_by_quiz_provider.dart';
-import '../providers/quiz_by_id_provider.dart';
+import '../models/attempt_payload.dart';
+import '../providers/attempt_submit_provider.dart';
 
 class TakeQuizScreen extends ConsumerStatefulWidget {
   final String quizId;
@@ -15,7 +19,13 @@ class TakeQuizScreen extends ConsumerStatefulWidget {
 }
 
 class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
-  final Map<String, int> _answers = {}; // questionId -> selectedIndex
+  // selection & tracking
+  final Map<String, int> _answers = {};            // qId -> selectedIndex
+  final Map<String, int> _changeCount = {};        // qId -> times selection CHANGED
+  final Map<String, List<int>> _tapCounts = {};    // qId -> per-option taps
+
+  // view/progress
+  List<Question> _latestQuestions = const [];
   int _index = 0;
 
   // timer
@@ -23,22 +33,22 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
   bool _timerStarted = false;
   Timer? _timer;
 
-  // 🔧 fix: keep the latest questions so submit never touches AsyncValue
-  List<Question> _latestQuestions = const [];
-
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
+  // ---------- helpers ----------
+
   void _maybeStartTimer(int durationMinutes) {
     if (_timerStarted) return;
     _timerStarted = true;
-    _secondsLeft = (durationMinutes <= 0 ? 1 : durationMinutes) * 60;
+    final alloc = max(1, durationMinutes) * 60;
+    _secondsLeft = alloc;
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _secondsLeft = (_secondsLeft - 1).clamp(0, 1 << 30));
+      setState(() => _secondsLeft = max(0, _secondsLeft - 1));
       if (_secondsLeft <= 0) {
         t.cancel();
         _submit(auto: true);
@@ -46,31 +56,142 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
     });
   }
 
+  void _initCounters(List<Question> questions) {
+    for (final q in questions) {
+      _changeCount.putIfAbsent(q.id, () => 0);
+      _tapCounts.putIfAbsent(q.id, () => List.filled(q.options.length, 0));
+    }
+  }
+
   void _select(String qId, int optionIndex) {
-    setState(() => _answers[qId] = optionIndex);
+    setState(() {
+      // per-option tap
+      final taps = _tapCounts[qId];
+      if (taps != null) {
+        if (optionIndex >= taps.length) {
+          taps.addAll(List.filled(optionIndex - taps.length + 1, 0));
+        }
+        taps[optionIndex] = taps[optionIndex] + 1;
+      }
+      // only count when selection CHANGES
+      final prev = _answers[qId];
+      if (prev != optionIndex) {
+        _changeCount[qId] = (_changeCount[qId] ?? 0) + 1;
+        _answers[qId] = optionIndex;
+      }
+    });
   }
 
   void _next(int total) {
     if (_index < total - 1) setState(() => _index++);
   }
 
-  // 🔧 fix: use cached _latestQuestions (fallback to provider.value if needed)
-  void _submit({bool auto = false}) {
+  double _difficultyMultiplier(String type) {
+    final t = type.toLowerCase();
+    if (t.contains('hard')) return 1.5;
+    if (t.contains('medium')) return 1.2;
+    if (t.contains('easy')) return 1.0;
+    return 1.0; // general / unknown
+  }
+
+  String _fmtMMSS(int secs) {
+    final m = secs ~/ 60, s = secs % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  // ---------- SUBMIT (Riverpod) ----------
+
+  Future<void> _submit({bool auto = false}) async {
     _timer?.cancel();
+
+    // snapshot
     var qs = _latestQuestions;
     if (qs.isEmpty) {
       final async = ref.read(questionsByQuizProvider(widget.quizId));
       qs = async.value ?? const <Question>[];
     }
-    _showResult(qs, auto: auto);
+    final quiz = ref.read(quizByIdProvider(widget.quizId)).value;
+
+    // compute result
+    int correct = 0;
+    for (final q in qs) {
+      final sel = _answers[q.id];
+      if (sel != null && sel == q.correctIndex) correct++;
+    }
+    final totalQ = qs.length;
+
+    final durationMin = int.tryParse((quiz?.durationMinutes ?? '0')) ?? 0;
+    final allocatedSec = max(1, durationMin) * 60;
+    final timeSpentSec = (allocatedSec - _secondsLeft).clamp(0, allocatedSec);
+
+    final totalChanges = _changeCount.values.fold<int>(0, (a, b) => a + b);
+    final totalTaps = _tapCounts.values
+        .fold<int>(0, (a, list) => a + list.fold<int>(0, (x, y) => x + y));
+    final extraChanges = max(0, totalChanges - totalQ);
+
+    // scoring
+    const basePerCorrect = 100;
+    final diffMult = _difficultyMultiplier(quiz?.type ?? '');
+    final speedBonus = ((_secondsLeft / allocatedSec) * 100).clamp(0, 100);
+    final raw = (correct * basePerCorrect * diffMult + speedBonus).round();
+    final clickPenalty = extraChanges * 5; // প্রতি extra change -5
+    final finalScore = max(0, raw - clickPenalty);
+
+    // tapCounts JSON
+    final tapCountsJson = {
+      for (final q in qs)
+        q.id: {
+          'changes': _changeCount[q.id] ?? 0,
+          'per_option': _tapCounts[q.id] ?? List.filled(q.options.length, 0),
+        }
+    };
+
+    // answers map
+    final answersMap = {
+      for (final q in qs)
+        if (_answers[q.id] != null) q.id: _answers[q.id]!,
+    };
+
+    // payload
+    final payload = AttemptPayload(
+      quizId: widget.quizId,
+      correctCount: correct,
+      totalQuestions: totalQ,
+      timeSpentSec: timeSpentSec,
+      score: finalScore,
+      tapCountTotal: totalTaps,
+      changeCountTotal: totalChanges,
+      tapCounts: tapCountsJson,
+      answers: answersMap,
+      finishedAt: DateTime.now(),
+    );
+
+    // Riverpod submit
+    final controller = ref.read(attemptSubmitControllerProvider.notifier);
+    await controller.submit(payload);
+
+    final submitState = ref.read(attemptSubmitControllerProvider);
+    if (submitState.hasError) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Save failed: ${submitState.error}')),
+        );
+      }
+    }
+
+    _showResult(qs, correct, finalScore, timeSpentSec, totalTaps, totalChanges,
+        auto: auto);
   }
 
-  void _showResult(List<Question> questions, {bool auto = false}) {
-    int score = 0;
-    for (final q in questions) {
-      final sel = _answers[q.id];
-      if (sel != null && sel == q.correctIndex) score++;
-    }
+  void _showResult(
+      List<Question> questions,
+      int correct,
+      int score,
+      int timeSpentSec,
+      int totalTaps,
+      int totalChanges, {
+        bool auto = false,
+      }) {
     final total = questions.length;
 
     showModalBottomSheet(
@@ -95,22 +216,30 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
             const SizedBox(height: 16),
             Text(
               auto ? "Time’s up!" : "Quiz submitted",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              style:
+              const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
-            Text("Your score is $score / $total",
-                style: const TextStyle(fontSize: 16)),
+            Text(
+              "Score: $score   •   $correct / $total correct",
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              "Time: ${_fmtMMSS(timeSpentSec)}   •   Taps: $totalTaps   •   Changes: $totalChanges",
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
+            ),
             const SizedBox(height: 16),
             LinearProgressIndicator(
-              value: total == 0 ? 0 : score / total,
+              value: total == 0 ? 0 : correct / total,
               minHeight: 8,
               borderRadius: BorderRadius.circular(8),
             ),
             const SizedBox(height: 20),
             FilledButton(
               onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).maybePop();
+                Navigator.of(context).pop(); // close sheet
+                Navigator.of(context).maybePop(); // leave screen
               },
               child: const Text("Close"),
             ),
@@ -121,15 +250,13 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
     );
   }
 
-  String _fmt(int secs) {
-    final m = secs ~/ 60, s = secs % 60;
-    return '${m.toString().padLeft(2,'0')}:${s.toString().padLeft(2,'0')}';
-  }
+  // ---------- UI ----------
 
   @override
   Widget build(BuildContext context) {
     final quizAsync = ref.watch(quizByIdProvider(widget.quizId));
     final qsAsync = ref.watch(questionsByQuizProvider(widget.quizId));
+    final submitState = ref.watch(attemptSubmitControllerProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3EBDD),
@@ -150,12 +277,14 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
                   return const Center(child: Text('No questions found'));
                 }
 
-                // 🔧 keep a fresh copy for submit
                 _latestQuestions = questions;
+                _initCounters(questions);
 
                 final q = questions[_index];
                 final total = questions.length;
                 final selected = _answers[q.id];
+
+                final isSubmitting = submitState.isLoading;
 
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -171,17 +300,19 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  fontSize: 26, fontWeight: FontWeight.w800),
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                           IconButton(
-                            onPressed: () =>
-                                Navigator.of(context).maybePop(),
+                            onPressed: () => Navigator.of(context).maybePop(),
                             icon: const Icon(Icons.close_rounded),
                           ),
                         ],
                       ),
 
+                      // segmented progress
                       _SegmentedProgress(
                         current: _index,
                         total: total,
@@ -217,19 +348,25 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
                                   const SizedBox(width: 8),
                                   _ChipBadge(
                                     text:
-                                    "${duration}min  |  ${_fmt(_secondsLeft)}",
+                                    "${duration}min  |  ${_fmtMMSS(_secondsLeft)}",
                                     bg: const Color(0xFF7B7B7B),
                                     fg: Colors.white,
                                   ),
+                                  const Spacer(),
+                                  Text("${_index + 1} / $total",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w700)),
                                 ],
                               ),
                               const SizedBox(height: 16),
+
                               Text(
                                 q.text,
                                 style: const TextStyle(
                                     fontSize: 20, fontWeight: FontWeight.w800),
                               ),
                               const SizedBox(height: 14),
+
                               Expanded(
                                 child: ListView.separated(
                                   itemCount: q.options.length,
@@ -248,12 +385,13 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
 
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
-                          onPressed: selected == null
+                          onPressed: isSubmitting || selected == null
                               ? null
                               : () {
                             if (_index == total - 1) {
@@ -270,8 +408,14 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child:
-                          Text(_index == total - 1 ? "Submit" : "Next"),
+                          child: isSubmitting
+                              ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                              : Text(_index == total - 1 ? "Submit" : "Next"),
                         ),
                       ),
                     ],
@@ -286,7 +430,7 @@ class _TakeQuizScreenState extends ConsumerState<TakeQuizScreen> {
   }
 }
 
-/// UI helpers
+/// --- UI BITS ---
 
 class _ChipBadge extends StatelessWidget {
   final String text;
@@ -296,17 +440,10 @@ class _ChipBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w700, color: fg),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+      child: Text(text,
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
     );
   }
 }
@@ -336,31 +473,20 @@ class _OptionTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: border, width: 1.2),
           ),
           child: Row(
             children: [
-              Text(
-                labelPrefix,
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: fg,
-                ),
-              ),
+              Text(labelPrefix,
+                  style: TextStyle(fontWeight: FontWeight.w800, color: fg)),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: fg,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: Text(text,
+                    style: TextStyle(
+                        fontSize: 15, color: fg, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
