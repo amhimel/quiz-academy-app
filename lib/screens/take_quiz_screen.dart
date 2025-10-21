@@ -2,10 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:quiz_academy/providers/quiz_by_id_provider.dart';
 import 'package:quiz_academy/providers/questions_by_quiz_provider.dart';
-
 import '../models/question.dart';
 import '../models/attempt_payload.dart';
 import '../providers/attempt_submit_provider.dart';

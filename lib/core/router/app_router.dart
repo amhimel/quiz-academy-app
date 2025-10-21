@@ -20,6 +20,7 @@ import 'package:quiz_academy/models/quiz.dart';
 import '../../models/quiz_draft.dart';
 import '../../providers/auth_controller.dart';
 import '../../providers/profile_completion_provider.dart';
+import '../../screens/quiz_leaderboard_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authValue = ref.watch(authStateProvider); // AsyncValue<ProfileModel?>
@@ -57,7 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => CustomBottomNav(
           pages: const [
             HomeScreen(),
-            QuizListScreen(),
+            YourQuizzesScreen(),
             LeaderBoardScreen(),
             FriendListScreen(),
           ],
@@ -78,6 +79,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             return const Scaffold(body: Center(child: Text('No quiz id')));
           }
           return TakeQuizScreen(quizId: quizId); // ✅ only pass 'quizId'
+        },
+      ),
+      GoRoute(
+        path: '/quiz/:id/leaderboard',
+        name: 'quiz-leaderboard',
+        builder: (_, state) {
+          final id = state.pathParameters['id']!;
+          return QuizLeaderboardScreen(quizId: id);
         },
       ),
 
