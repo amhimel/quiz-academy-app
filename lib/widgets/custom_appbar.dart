@@ -44,7 +44,7 @@ Duration _timeUntilNextBoundary(DateTime now) {
 class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
   final String name;
   final String? profileImageUrl;
-  final VoidCallback? onProfileTap;
+  final VoidCallback? onSearchTap;
   final VoidCallback? onLogoutTap; // 👈 new
   final double height;
   final EdgeInsetsGeometry contentPadding;
@@ -53,7 +53,7 @@ class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
     super.key,
     required this.name,
     this.profileImageUrl,
-    this.onProfileTap,
+    this.onSearchTap,
     this.onLogoutTap, // 👈 new
     this.height = kToolbarHeight + 20,
     this.contentPadding = const EdgeInsets.symmetric(
@@ -147,16 +147,11 @@ class _CustomAppbarState extends State<CustomAppbar> {
             ),
             // Profile avatar
             GestureDetector(
-              onTap: widget.onProfileTap,
-              child: CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.grey.shade200,
-                backgroundImage: widget.profileImageUrl != null
-                    ? NetworkImage(widget.profileImageUrl!)
-                    : null,
-                child: widget.profileImageUrl == null
-                    ? const Icon(Icons.person, color: Colors.grey)
-                    : null,
+              onTap: widget.onSearchTap,
+              child: const CircleAvatar(
+                radius: 20,
+                backgroundColor:  Color(0xFF4E63FF),
+                child: Icon(Icons.search, color: Colors.white),
               ),
             ),
             const SizedBox(width: 12),

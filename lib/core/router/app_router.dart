@@ -21,6 +21,7 @@ import '../../models/quiz_draft.dart';
 import '../../providers/auth_controller.dart';
 import '../../providers/profile_completion_provider.dart';
 import '../../screens/quiz_leaderboard_screen.dart';
+import '../../screens/search_quiz_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authValue = ref.watch(authStateProvider); // AsyncValue<ProfileModel?>
@@ -47,15 +48,19 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
 
     routes: [
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(
         path: '/complete-profile',
-        builder: (_, __) => const CompleteProfileScreen(),
+        builder: (_, _) => const CompleteProfileScreen(),
+      ),
+      GoRoute(
+        path: '/search-quiz',
+        builder: (_, _) => const SearchQuizScreen(),
       ),
       GoRoute(
         path: '/nav',
-        builder: (_, __) => CustomBottomNav(
+        builder: (_, _) => CustomBottomNav(
           pages: const [
             HomeScreen(),
             YourQuizzesScreen(),
@@ -66,7 +71,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/create-quiz',
-        builder: (_, __) => CreateQuizMetaScreen(initialCode: generateCode()),
+        builder: (_, _) => CreateQuizMetaScreen(initialCode: generateCode()),
       ),
 
       // NEW — Take Quiz route

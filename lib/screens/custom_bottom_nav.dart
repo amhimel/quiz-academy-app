@@ -7,7 +7,6 @@ import '../providers/my_profile_provider.dart';
 import '../widgets/create_or_import_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-
 final _sb = Supabase.instance.client;
 
 class CustomBottomNav extends ConsumerStatefulWidget {
@@ -70,7 +69,9 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
       appBar: CustomAppbar(
         name: name,
         profileImageUrl: avatarUrl,
-        onProfileTap: () {},
+        onSearchTap: () {
+          context.push('/search-quiz');
+        },
         height: 90,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
@@ -80,7 +81,6 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
           await _sb.auth.signOut();
           context.go('/login');
         },
-
       ),
       backgroundColor: const Color(0xFFF3EBDD),
       body: Stack(
