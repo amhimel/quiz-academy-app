@@ -55,6 +55,7 @@ dependencies:
   google_fonts: ^6.3.1
   file_picker: ^8.0.0
   csv: ^6.0.0
+  flutter_native_splash: ^2.4.7
 
 
 dev_dependencies:
@@ -91,6 +92,9 @@ flutter:
     - assets/icons/profile.png
     - assets/icons/quiz_icon.png
     - assets/.env
+    - assets/logo.png
+    - assets/quiz_academy_bg.png
+    - assets/quiz_academy_branding.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

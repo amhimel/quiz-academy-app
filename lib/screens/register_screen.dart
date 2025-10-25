@@ -87,6 +87,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final isRegistering = ref.watch(registerLoadingProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF3EBDD),
       appBar: AppBar(
         //backgroundColor: Colors.transparent,
         elevation: 0,

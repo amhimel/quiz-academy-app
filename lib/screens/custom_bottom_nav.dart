@@ -163,7 +163,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
                                     Text(
                                       labels[i],
                                       style: TextStyle(
-                                        fontSize: selected ? 14 : 12,
+                                        fontSize: selected ? 12 : 10,
                                         fontWeight: selected
                                             ? FontWeight.w600
                                             : FontWeight.w400,

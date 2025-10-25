@@ -1,21 +1,43 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:quiz_academy/providers/theme_provider.dart';
-import 'core/constants/theme_data.dart';
-import 'core/enums/all_enum.dart';
 import 'core/router/app_router.dart';
 
-class App extends ConsumerWidget {
+class App extends ConsumerStatefulWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context , WidgetRef ref) {
-    final themeState =  ref.watch(themeProvider);
+  ConsumerState<App> createState() => _AppState();
+}
+
+class _AppState extends ConsumerState<App> {
+  @override
+  void initState() {
+    super.initState();
+    initialization();
+
+  }
+  void initialization() async {
+    // Perform any initialization tasks here
+    log("Splash Screen Initialization Start....");
+    await Future.delayed(const Duration(seconds: 3));
+    log("Splash Screen Initialization Complete....");
+    FlutterNativeSplash.remove();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: router,
-      theme: /*themeState == ThemeEnum.dark ? MyAppTheme.darkTheme : */ MyAppTheme.lightTheme,
     );
+  }
+
+  @override
+  void dispose() {
+    // Clean up here if needed
+    super.dispose();
   }
 }

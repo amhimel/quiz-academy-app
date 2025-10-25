@@ -1,0 +1,12 @@
+flutter_native_splash:
+  android: true
+  ios: true
+  color: "#FEF7E7"
+  background_image: "assets/quiz_academy_bg.png"
+  image: "assets/logo.png"
+  branding: "assets/quiz_academy_branding.png"
+  fullscreen: true
+  android_12:
+    color: "#FEF7E7"
+    image: "assets/logo.png"
+    branding: "assets/quiz_academy_branding.png"

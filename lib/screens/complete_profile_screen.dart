@@ -65,6 +65,7 @@ class CompleteProfileScreen extends ConsumerWidget {
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF3EBDD),
       appBar: AppBar(title: const Text('Complete your profile')),
       body: Padding(
         padding: const EdgeInsets.all(16),
