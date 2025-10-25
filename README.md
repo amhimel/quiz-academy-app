@@ -1,4 +1,4 @@
-# 📚 Quiz Academy — Flutter App
+ # 📚 Quiz Academy — Flutter App
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white)](https://dart.dev)
@@ -28,13 +28,13 @@ Engage your users with quick, shareable quizzes, real‑time leaderboards, and a
 
 > Place the `screenshots/` folder in your repo root so these links work on GitHub.
 
-<img src="./screenshots/splash.jpeg" width="260" /> <img src="./screenshots/login.jpeg" width="260" /> <img src="./screenshots/register.jpeg" width="260" />
+<img src="./screenshots/1.jpeg" width="260" /> <img src="./screenshots/2.jpeg" width="260" /> <img src="./screenshots/3.jpeg" width="260" />
 
-<img src="./screenshots/home.jpeg" width="260" /> <img src="./screenshots/your_quizzes.jpeg" width="260" /> <img src="./screenshots/create_or_import.jpeg" width="260" />
+<img src="./screenshots/4.jpeg" width="260" /> <img src="./screenshots/5.jpeg" width="260" /> <img src="./screenshots/9.jpeg" width="260" />
 
-<img src="./screenshots/leaderboard_tabs.jpeg" width="260" /> <img src="./screenshots/leaderboard_top3.jpeg" width="260" /> <img src="./screenshots/friends.jpeg" width="260" />
+<img src="./screenshots/6.jpeg" width="260" /> <img src="./screenshots/7.jpeg" width="260" /> <img src="./screenshots/8.jpeg" width="260" />
 
-<img src="./screenshots/search_quiz.jpeg" width="260" />
+<img src="./screenshots/10.jpeg" width="260" />
 
 ---
 
