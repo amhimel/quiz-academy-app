@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,6 +96,7 @@ class _CreateQuizQuestionsScreenState
         Navigator.of(context).pop();
       } else {
         final error = ref.read(quizNotifierProvider).error ?? "Unknown error";
+        log(error);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $error')),
         );

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "57178606147",
+    "project_id": "quiz-academy-8894a",
+    "storage_bucket": "quiz-academy-8894a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57178606147:android:d1b32da54184e1fb24e2f6",
+        "android_client_info": {
+          "package_name": "com.example.quiz_academy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfxxifiN3KBXSd_dgykZioDwCw1o1T4jk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
